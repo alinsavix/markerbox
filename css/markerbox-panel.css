@@ -1,0 +1,193 @@
+/*
+
+Styles of MARKERBOX extension for Adobe Premiere
+
+© 2021 by Tyron Montgomery
+Last modified on April 04, 2021
+
+
+*/
+
+
+
+/*---------- Variables ----------*/
+
+
+
+:root
+	{
+  	--markerbox-gray1:			rgb(51,51,51);
+  	--markerbox-gray2:			rgb(77,77,77);
+  	--markerbox-gray3:			rgb(102,102,102);
+  	--markerbox-gray4:			rgb(153,153,153);
+  	--markerbox-gray5:			rgb(204,204,204);
+  	--markerbox-blue:			rgb(102,153,255);	/* #6699FF */
+  	--markerbox-green:			rgb(153,204,51);	/* #99CC33 */
+  	--markerbox-orange:			rgb(255,102,0);		/* #FF6600 */
+  	--markerbox-buttonwidth:	200px;
+  	--markerbox-statusheight:	50px;
+	}
+
+
+
+/*---------- Fonts ----------*/
+
+
+
+body,html,div,p,button,input
+	{
+	font-family: adobe-clean,"Source Sans Pro",-apple-system,BlinkMacSystemFont,
+	"Segoe UI",Roboto,Calibri,LucidaGrande,Arial,Helvetica,sans-serif !important;
+	font-size: 12px !important;
+	font-weight: lighter !important;
+	letter-spacing: 0.7px;
+	color: rgb(153,153,153) !important;
+	}
+
+
+
+/*---------- General styles ----------*/
+
+
+
+html,body
+	{
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	margin: 0;
+	overflow: hidden;
+	}
+
+.alpha0
+	{
+	opacity: 0.0;
+	filter: alpha(opacity=000);
+	filter: grayscale(100%);
+	transition: opacity 500ms ease, filter 500ms ease;
+	}
+
+.alpha100
+	{
+	opacity: 1.0;
+	filter: alpha(opacity=100);
+	transition: opacity 2000ms ease, filter 2000ms ease;
+	}
+
+a
+	{
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	}
+
+
+
+/*---------- Left container ----------*/
+
+
+
+#left
+	{
+	float: left;
+	width: calc(var(--markerbox-buttonwidth) + 40px);
+	height: 100%;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-between;
+	border-right: solid rgba(255,255,255,0.1) 1px;
+	}
+
+#buttons
+	{
+	padding: 20px 20px 10px 20px;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	}
+
+#logo
+	{
+	width: var(--markerbox-buttonwidth);
+	height: auto;
+	padding: 0;
+	margin: 0 0 5px 0;
+	}
+
+button
+	{
+	width: var(--markerbox-buttonwidth);
+	border: 0px;
+	border-radius: 3px;
+	padding: 6px 0 7px 0 !important;
+	margin: 0 0 10px 0;
+	color: white !important; 
+	text-shadow: 0 0 5px black;
+	background-color: var(--markerbox-gray2);
+	transition: background-color .6s ease-in-out .1s;
+	cursor: pointer;
+	}
+
+button:hover								{ transition: background-color .2s ease-in-out; }
+button.blue:hover, button.blue:active		{ background-color: var(--markerbox-blue) !important; }
+button.green:hover,button.green:active		{ background-color: var(--markerbox-green) !important; }
+button.orange:hover,button.orange:active	{ background-color: var(--markerbox-orange) !important; }
+#clearDropzone, #importPremiere				{ margin-bottom: 23px; }
+
+
+
+/*---------- Right container ----------*/
+
+
+
+#right		
+	{
+	float: right;
+	width:  calc(100% - var(--markerbox-buttonwidth) - 80px);
+	height: calc(100% - 40px);
+	padding: 20px 20px 20px 0;
+	margin: 0;
+	}
+
+#dropzone
+	{
+	width: calc(100% - 20px);
+	height: calc(100% - 20px);
+	background-color: var(--markerbox-gray5);
+	padding: 10px; resize: none;
+	}
+
+
+
+/*---------- Status bar ----------*/
+
+
+
+#statusbar		
+	{
+	width: 100%;
+	height: var(--markerbox-statusheight);
+	padding: 0;
+	margin: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-top: solid rgba(255,255,255,0.1) 1px;
+	overflow: hidden;
+	}
+
+#loader		
+	{
+	width: 15px;
+	height: 15px;
+	padding: 0;
+	margin: 0 10px 0 0;
+	}
+
+
+

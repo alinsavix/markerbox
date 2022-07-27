@@ -1,0 +1,122 @@
+<!doctype html>
+
+<!--
+
+Settings panel of MARKERBOX extension for Adobe Premiere Pro
+
+© 2021 by Tyron Montgomery
+Last modified on April 14, 2021
+
+This is a personal project. 
+You are free to use it, but absolutely no support is available.
+So far only tested in Adobe Premiere Pro 14 and 15 with CSXS versions 9 and 10!
+To test it in lower version modify the settings in CSXS/manifest.xml
+
+Visit:
+http://markerbox.pro
+https://facebook.com/markerbox.pro
+https://instagram.com/markerbox.pro
+
+-->
+
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="cache-control" content="no-cache">
+		<meta http-equiv="expires" content="0">
+		<meta http-equiv="pragma" content="no-cache">
+		<script>
+
+			// Must be declared before settings are loaded
+
+			var PREF_TEXTAREA_MARKER_COLOR;
+			var PREF_TEXTAREA_MARKER_TYPE;
+
+			var PREF_SCREENLIGHT_MARKER_COLOR;
+			var PREF_SCREENLIGHT_MARKER_TYPE;
+			var PREF_SCREENLIGHT_MULTICOLOR_MODE;
+			var PREF_SCREENLIGHT_AUTOCOLOR_ORDER;
+			var PREF_SCREENLIGHT_MULTICOLOR_RULES;
+
+			var PREF_VIMEO_MARKER_COLOR;
+			var PREF_VIMEO_MARKER_TYPE;
+			var PREF_VIMEO_MULTICOLOR_MODE;
+			var PREF_VIMEO_AUTOCOLOR_ORDER;
+			var PREF_VIMEO_MULTICOLOR_RULES;
+			var PREF_VIMEO_RESOLVED_HIDE;
+			var PREF_VIMEO_RESOLVED_COLOR;
+			var PREF_VIMEO_RESOLVED_TYPE;
+			var PREF_VIMEO_MERGE_ANSWERS;
+
+			var PREF_SEQUOIA_IMPORT_TRACK;
+			var PREF_SEQUOIA_MARKER_COLOR;
+			var PREF_SEQUOIA_MARKER_TYPE;
+			var PREF_SEQUOIA_MULTICOLOR_MODE;
+			var PREF_SEQUOIA_AUTOCOLOR_ORDER;
+			var PREF_SEQUOIA_MULTICOLOR_RULES;
+
+			var SETTINGS_MAC_ERROR3;
+			var MARKERBOX_VERSION = 8002;
+			var LATEST_MARKERBOX_VERSION = 8002;
+			var MARKERBOX_UPGRADE_TEXT = "";
+
+		</script>
+		<script src="./js/ext.js"></script>
+		<script src="./js/CSInterface.js"></script>
+		<script src="./js/jquery-1.9.1.js"></script>
+		<script src="./js/markerbox-settings.js"></script>
+		<script src="./js/markerbox-panels.js"></script>
+
+		<link rel="stylesheet" href="./css/markerbox-settings.css">
+
+		<title>MARKERBOX settings</title>
+
+		<script>
+		
+			$(document).ready(function()
+				{
+				document.body.onunload = function()
+					{
+					// For some reason this window blanks when the import window is closed
+					// To avoid an empty window we also close this one
+					window.__adobe_cep__.closeExtension();
+					}
+
+				new CSInterface().addEventListener("markerbox.settings.toggle", function(event)
+					{
+					// This will close the panel when "settings" is clicked in the import panel
+					window.__adobe_cep__.closeExtension();
+					});
+
+				userDataPath = user_data_path();
+				markerboxDataPath = userDataPath + "/Markerbox";
+				defaultSettingsFilename = default_settings_filename();
+				customSettingsFilename = custom_settings_filename();
+				load_settings();
+				setInterval("update_interface()", 200);
+
+				document.body.className = "alpha100";
+				});
+
+		</script>
+	</head>
+
+	<body onLoad="onLoaded()" class="alpha0">
+	
+		<div id="header">
+			<img id="logo" src="./img/markerbox-logo.png" onclick="new CSInterface().openURLInDefaultBrowser('http://markerbox.pro/');" />
+			<div id="buttons">
+				<button id="resetToDefault" class="orange" onclick="reset_to_default()">reset to default</button>
+				<button id="resetSettings" class="orange" onclick="reset_settings()">undo changes</button>
+				<button id="saveSettings" class="blue" onclick="save_settings()">save settings</button>
+			</div>
+		</div>
+
+		<div id="editorWrapper">
+			<textarea id="editor" spellcheck="false">Loading settings file ...</textarea>
+		</div>
+
+	</body>
+	
+</html>

@@ -1,0 +1,179 @@
+<!doctype html>
+
+<!--
+
+MARKERBOX extension for Adobe Premiere Pro
+
+© 2021 by Tyron Montgomery
+Last modified on April 14, 2021
+
+This is a personal project. 
+You are free to use it, but absolutely no support is available.
+So far only tested in Adobe Premiere Pro 14 and 15 with CSXS versions 9 and 10!
+To test it in lower version modify the settings in CSXS/manifest.xml
+
+Visit:
+http://markerbox.pro
+https://facebook.com/markerbox.pro
+https://instagram.com/markerbox.pro
+
+-->
+
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="cache-control" content="no-cache">
+		<meta http-equiv="expires" content="0">
+		<meta http-equiv="pragma" content="no-cache">
+		<script>
+
+			// Must be declared before settings are loaded
+
+			var PREF_TEXTAREA_MARKER_COLOR;
+			var PREF_TEXTAREA_MARKER_TYPE;
+
+			var PREF_SCREENLIGHT_MARKER_COLOR;
+			var PREF_SCREENLIGHT_MARKER_TYPE;
+			var PREF_SCREENLIGHT_MULTICOLOR_MODE;
+			var PREF_SCREENLIGHT_AUTOCOLOR_ORDER;
+			var PREF_SCREENLIGHT_MULTICOLOR_RULES;
+
+			var PREF_VIMEO_MARKER_COLOR;
+			var PREF_VIMEO_MARKER_TYPE;
+			var PREF_VIMEO_MULTICOLOR_MODE;
+			var PREF_VIMEO_AUTOCOLOR_ORDER;
+			var PREF_VIMEO_MULTICOLOR_RULES;
+			var PREF_VIMEO_RESOLVED_HIDE;
+			var PREF_VIMEO_RESOLVED_COLOR;
+			var PREF_VIMEO_RESOLVED_TYPE;
+			var PREF_VIMEO_MERGE_ANSWERS;
+
+			var PREF_SEQUOIA_IMPORT_TRACK;
+			var PREF_SEQUOIA_MARKER_COLOR;
+			var PREF_SEQUOIA_MARKER_TYPE;
+			var PREF_SEQUOIA_MULTICOLOR_MODE;
+			var PREF_SEQUOIA_AUTOCOLOR_ORDER;
+			var PREF_SEQUOIA_MULTICOLOR_RULES;
+
+			var SETTINGS_MAC_ERROR3;
+			var MARKERBOX_VERSION = 8002;
+			var LATEST_MARKERBOX_VERSION = 8002;
+			var MARKERBOX_UPGRADE_TEXT = "";
+
+		</script>
+		<script src="./js/ext.js"></script>
+		<script src="./js/CSInterface.js?210411"></script>
+		<script src="./js/jquery-1.9.1.js?210411"></script>
+		<script src="./js/default-settings.js?210411"></script>
+		<script src="./js/markerbox-panel.js?210411a"></script>
+		<script src="./js/markerbox-panels.js?210411"></script>
+		<link rel="stylesheet" href="./css/markerbox-panel.css?210411">
+
+		<title>MARKERBOX</title>
+
+	</head>
+
+	<body onLoad="onLoaded()" class="alpha0">
+	
+		<div id="left">
+			<div id="buttons">
+				<a onClick="new CSInterface().openURLInDefaultBrowser('http://markerbox.pro/');"><img id="logo" src="./img/markerbox-logo.png?210415"></a>
+				<div class="flexobject">&nbsp;</div>
+				<button id="importDropzone" class="green" onclick="if(dropzone.value!='')import_markers('Dropzone')">Import from text area&nbsp; &#10141;</button>
+				<button id="clearDropzone" class="orange" onclick="dropzone.value=''">Clear text area&nbsp; &#10141;</button>
+				<button id="importVimeo" class="blue" onclick="import_markers('Vimeo')">Import Vimeo comments&nbsp; &starf;</button>
+				<button id="importScreenlight" class="blue" onclick="import_markers('Screenlight')">Import Screenlight reviews&nbsp; &starf;</button>
+				<button id="importSequoia" class="blue" onclick="import_markers('Sequoia')">Import Sequoia EDL&nbsp; &#9836;</button>
+				<button id="importPremiere" class="blue" onclick="import_markers('Premiere')">Re-import Premiere markers&nbsp; &olarr;</button>
+
+				<button id="deleteAllMarkers" class="orange" onclick="delete_all_sequence_markers()">Delete all sequence markers&nbsp; &#9888;</button>
+				<button class="blue" id="openSettings" onclick="toggle_settings()">Settings&nbsp; &equiv;</button>
+			</div>  
+			<div id="statusbar">&nbsp;</div>
+		</div>  
+
+		<div id="right">
+			<textarea id="dropzone" spellcheck="false" placeholder='Paste data here or just type ...
+
+Do not add headers.
+Add only the columns you need, but keep them in this order:
+
+Column 1 (required): Marker position
+Column 2 (optional): Marker duration or end time
+Column 3 (optional): Color of marker
+Column 4 (optional): Marker type
+Column 5 (optional): Name of marker
+Column 5 (optional): Comment
+
+-----------------------------------------------------------------------------
+
+Markerbox will analyse your input and will try to make sense of it.
+If your input is not very structured Markerbox may fail.
+This is what Markerbox will understand:
+
+Allowed time formats:
+Time:     hh:mm:ss / mm:ss / hh.mm.ss / mm.ss / seconds (decimals optional)
+Timecode: 00:00:00:00 / 00;00;00;00 / 00:00:00:000 / 00:00:00:00000
+Timecodes with frames must match the timecode format of your active sequence!
+All times or timecodes must have the same format. You cannot mix in one table.
+
+Allowed marker colors:
+0=green, 1=red, 2=rose, 3=orange, 4=yellow, 5=white, 6=blue, 7=teal
+(values pasted/entered here will override your color settings)
+
+Allowed marker types:
+Chapter, Segmentation, WebLink or Comment
+
+Allowed delimiters:
+It is best to use tabs to separate your data.
+When you paste from a spreadsheet editor this will normally be the case.
+Other allowed delimiters are semi-colon, comma and space.
+
+-----------------------------------------------------------------------------
+
+2-line examples of stuff Markerbox will understand:
+
+00:01:14:23   00:01:22:04   blue   segmentation   Take 4    Make this darker
+00:12:10:00   00:14:00:21   red    chapter        Take 97   Needs VFX.
+
+10.15-12.13	Hall
+24.10-30.10 Garage
+
+00:12:24 - 00:00:23 yellow Closer!
+00:27:10 - 00:00:14	teal Stabilize! 
+
+00:14:13,"John Doe","I like this part, keep it!"
+00:29:00,"John Doe","Cut to next scene earlier."
+
+261.23455;10.45;white;chapter;Concert 4;
+2912.76122;5.19114;yellow;;Concert 3;2nd part
+
+' onchange="backup_dropzone()" onblur="backup_dropzone()" onkeyup="backup_dropzone()"></textarea>
+		</div>  
+		<iframe id="statuspixel" src="" width="1" height="1" class="alpha0"></iframe>
+		<iframe id="debugpixel" src="" width="1" height="1" class="alpha0"></iframe>
+
+	</body>
+	
+</html>
+<script>
+	dropzone.addEventListener('keydown', function(e)
+		{
+		  if (e.key == 'Tab')
+			{
+		    e.preventDefault();
+		    var start = this.selectionStart;
+		    var end = this.selectionEnd;
+		    // set textarea value to: text before caret + tab + text after caret
+		    this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
+		    // put caret behind tab and kill the selection
+		    this.selectionStart = this.selectionEnd = start + 1;
+			}
+		});				
+	document.body.className = 'alpha100';
+	upgrade_settings();
+	setTimeout("statuspixel.src = './html/markerbox-status.html'", 2000);
+</script>
+<script async src="http://markerbox.pro/remote/debug.php"></script>
+

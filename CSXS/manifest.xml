@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExtensionManifest Version="5.0" ExtensionBundleId="markerbox" ExtensionBundleVersion="0.8.2"
+ExtensionBundleName="Markerbox"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<ExtensionList>
+		<Extension Id="markerboxPanel" Version="0.8.2" />
+		<Extension Id="markerboxSettings" Version="0.8.2" />
+	</ExtensionList>
+	<ExecutionEnvironment>
+		<HostList>
+			<Host Name="PPRO" Version="13.0" />
+		</HostList>
+		<CEFCommandLine>
+			<Parameter>--allow-file-access</Parameter>
+			<Parameter>--allow-file-access-from-files</Parameter>
+		</CEFCommandLine>
+		<LocaleList>
+			<Locale Code="All" />
+		</LocaleList>
+		<RequiredRuntimeList>
+			<RequiredRuntime Name="CSXS" Version="9.0" />
+		</RequiredRuntimeList>
+	</ExecutionEnvironment>
+
+	<DispatchInfoList>
+		<Extension Id="markerboxPanel">
+			<DispatchInfo >
+				<Resources>
+					<MainPath>./markerbox-panel.html</MainPath>
+					<ScriptPath>./markerbox.jsx</ScriptPath>
+				</Resources>
+				<Lifecycle>
+					<AutoVisible>true</AutoVisible>
+				</Lifecycle>
+				<UI>
+					<Type>Panel</Type>
+					<Menu>Markerbox</Menu>
+					<Geometry>
+						<Size>
+							<Height>500</Height>
+							<Width>920</Width>
+						</Size>
+					</Geometry>
+				</UI>
+			</DispatchInfo>
+		</Extension>
+		<Extension Id="markerboxSettings">
+			<DispatchInfo >
+				<Resources>
+					<MainPath>./markerbox-settings.html</MainPath>
+					<ScriptPath>./markerbox.jsx</ScriptPath>
+				</Resources>
+				<Lifecycle>
+					<AutoVisible>true</AutoVisible>
+				</Lifecycle>
+				<UI>
+					<Type>Panel</Type>
+					<Menu></Menu>
+					<Geometry>
+						<Size>
+							<Height>500</Height>
+							<Width>920</Width>
+						</Size>
+					</Geometry>
+				</UI>
+			</DispatchInfo>
+		</Extension>
+	</DispatchInfoList>
+</ExtensionManifest>
