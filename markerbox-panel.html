@@ -7,7 +7,7 @@ MARKERBOX extension for Adobe Premiere Pro
 © 2021 by Tyron Montgomery
 Last modified on April 14, 2021
 
-This is a personal project. 
+This is a personal project.
 You are free to use it, but absolutely no support is available.
 So far only tested in Adobe Premiere Pro 14 and 15 with CSXS versions 9 and 10!
 To test it in lower version modify the settings in CSXS/manifest.xml
@@ -21,80 +21,89 @@ https://instagram.com/markerbox.pro
 
 <html>
 
-	<head>
-		<meta charset="utf-8">
-		<meta http-equiv="cache-control" content="no-cache">
-		<meta http-equiv="expires" content="0">
-		<meta http-equiv="pragma" content="no-cache">
-		<script>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="expires" content="0">
+    <meta http-equiv="pragma" content="no-cache">
+    <script>
+        // Must be declared before settings are loaded
 
-			// Must be declared before settings are loaded
+        var PREF_TEXTAREA_MARKER_COLOR;
+        var PREF_TEXTAREA_MARKER_TYPE;
 
-			var PREF_TEXTAREA_MARKER_COLOR;
-			var PREF_TEXTAREA_MARKER_TYPE;
+        var PREF_SCREENLIGHT_MARKER_COLOR;
+        var PREF_SCREENLIGHT_MARKER_TYPE;
+        var PREF_SCREENLIGHT_MULTICOLOR_MODE;
+        var PREF_SCREENLIGHT_AUTOCOLOR_ORDER;
+        var PREF_SCREENLIGHT_MULTICOLOR_RULES;
 
-			var PREF_SCREENLIGHT_MARKER_COLOR;
-			var PREF_SCREENLIGHT_MARKER_TYPE;
-			var PREF_SCREENLIGHT_MULTICOLOR_MODE;
-			var PREF_SCREENLIGHT_AUTOCOLOR_ORDER;
-			var PREF_SCREENLIGHT_MULTICOLOR_RULES;
+        var PREF_VIMEO_MARKER_COLOR;
+        var PREF_VIMEO_MARKER_TYPE;
+        var PREF_VIMEO_MULTICOLOR_MODE;
+        var PREF_VIMEO_AUTOCOLOR_ORDER;
+        var PREF_VIMEO_MULTICOLOR_RULES;
+        var PREF_VIMEO_RESOLVED_HIDE;
+        var PREF_VIMEO_RESOLVED_COLOR;
+        var PREF_VIMEO_RESOLVED_TYPE;
+        var PREF_VIMEO_MERGE_ANSWERS;
 
-			var PREF_VIMEO_MARKER_COLOR;
-			var PREF_VIMEO_MARKER_TYPE;
-			var PREF_VIMEO_MULTICOLOR_MODE;
-			var PREF_VIMEO_AUTOCOLOR_ORDER;
-			var PREF_VIMEO_MULTICOLOR_RULES;
-			var PREF_VIMEO_RESOLVED_HIDE;
-			var PREF_VIMEO_RESOLVED_COLOR;
-			var PREF_VIMEO_RESOLVED_TYPE;
-			var PREF_VIMEO_MERGE_ANSWERS;
+        var PREF_SEQUOIA_IMPORT_TRACK;
+        var PREF_SEQUOIA_MARKER_COLOR;
+        var PREF_SEQUOIA_MARKER_TYPE;
+        var PREF_SEQUOIA_MULTICOLOR_MODE;
+        var PREF_SEQUOIA_AUTOCOLOR_ORDER;
+        var PREF_SEQUOIA_MULTICOLOR_RULES;
 
-			var PREF_SEQUOIA_IMPORT_TRACK;
-			var PREF_SEQUOIA_MARKER_COLOR;
-			var PREF_SEQUOIA_MARKER_TYPE;
-			var PREF_SEQUOIA_MULTICOLOR_MODE;
-			var PREF_SEQUOIA_AUTOCOLOR_ORDER;
-			var PREF_SEQUOIA_MULTICOLOR_RULES;
+        var SETTINGS_MAC_ERROR3;
+        var MARKERBOX_VERSION = 8002;
+        var LATEST_MARKERBOX_VERSION = 8002;
+        var MARKERBOX_UPGRADE_TEXT = "";
+    </script>
+    <script src="./js/ext.js"></script>
+    <script src="./js/CSInterface.js?210411"></script>
+    <script src="./js/jquery-1.9.1.js?210411"></script>
+    <script src="./js/default-settings.js?210411"></script>
+    <script src="./js/markerbox-panel.js?210411a"></script>
+    <script src="./js/markerbox-panels.js?210411"></script>
+    <link rel="stylesheet" href="./css/markerbox-panel.css?210411">
 
-			var SETTINGS_MAC_ERROR3;
-			var MARKERBOX_VERSION = 8002;
-			var LATEST_MARKERBOX_VERSION = 8002;
-			var MARKERBOX_UPGRADE_TEXT = "";
+    <title>MARKERBOX</title>
 
-		</script>
-		<script src="./js/ext.js"></script>
-		<script src="./js/CSInterface.js?210411"></script>
-		<script src="./js/jquery-1.9.1.js?210411"></script>
-		<script src="./js/default-settings.js?210411"></script>
-		<script src="./js/markerbox-panel.js?210411a"></script>
-		<script src="./js/markerbox-panels.js?210411"></script>
-		<link rel="stylesheet" href="./css/markerbox-panel.css?210411">
+</head>
 
-		<title>MARKERBOX</title>
+<body onLoad="onLoaded()" class="alpha0">
 
-	</head>
+    <div id="left">
+        <div id="buttons">
+            <a onClick="new CSInterface().openURLInDefaultBrowser('http://markerbox.pro/');"><img id="logo"
+                    src="./img/markerbox-logo.png?210415"></a>
+            <div class="flexobject">&nbsp;</div>
+            <button id="importDropzone" class="green" onclick="if(dropzone.value!='')import_markers('Dropzone')">Import
+                from text area&nbsp; &#10141;</button>
+            <button id="importDropzone" class="green"
+                onclick="if(dropzone.value!='')import_markers('Dropzone_Clip')">Import from text area (Clip)&nbsp;
+                &#10141;</button>
+            <button id="clearDropzone" class="orange" onclick="dropzone.value=''">Clear text area&nbsp;
+                &#10141;</button>
+            <button id="importVimeo" class="blue" onclick="import_markers('Vimeo')">Import Vimeo comments&nbsp;
+                &starf;</button>
+            <button id="importScreenlight" class="blue" onclick="import_markers('Screenlight')">Import Screenlight
+                reviews&nbsp; &starf;</button>
+            <button id="importSequoia" class="blue" onclick="import_markers('Sequoia')">Import Sequoia EDL&nbsp;
+                &#9836;</button>
+            <button id="importPremiere" class="blue" onclick="import_markers('Premiere')">Re-import Premiere
+                markers&nbsp; &olarr;</button>
 
-	<body onLoad="onLoaded()" class="alpha0">
-	
-		<div id="left">
-			<div id="buttons">
-				<a onClick="new CSInterface().openURLInDefaultBrowser('http://markerbox.pro/');"><img id="logo" src="./img/markerbox-logo.png?210415"></a>
-				<div class="flexobject">&nbsp;</div>
-				<button id="importDropzone" class="green" onclick="if(dropzone.value!='')import_markers('Dropzone')">Import from text area&nbsp; &#10141;</button>
-				<button id="clearDropzone" class="orange" onclick="dropzone.value=''">Clear text area&nbsp; &#10141;</button>
-				<button id="importVimeo" class="blue" onclick="import_markers('Vimeo')">Import Vimeo comments&nbsp; &starf;</button>
-				<button id="importScreenlight" class="blue" onclick="import_markers('Screenlight')">Import Screenlight reviews&nbsp; &starf;</button>
-				<button id="importSequoia" class="blue" onclick="import_markers('Sequoia')">Import Sequoia EDL&nbsp; &#9836;</button>
-				<button id="importPremiere" class="blue" onclick="import_markers('Premiere')">Re-import Premiere markers&nbsp; &olarr;</button>
+            <button id="deleteAllMarkers" class="orange" onclick="delete_all_sequence_markers()">Delete all sequence
+                markers&nbsp; &#9888;</button>
+            <button class="blue" id="openSettings" onclick="toggle_settings()">Settings&nbsp; &equiv;</button>
+        </div>
+        <div id="statusbar">&nbsp;</div>
+    </div>
 
-				<button id="deleteAllMarkers" class="orange" onclick="delete_all_sequence_markers()">Delete all sequence markers&nbsp; &#9888;</button>
-				<button class="blue" id="openSettings" onclick="toggle_settings()">Settings&nbsp; &equiv;</button>
-			</div>  
-			<div id="statusbar">&nbsp;</div>
-		</div>  
-
-		<div id="right">
-			<textarea id="dropzone" spellcheck="false" placeholder='Paste data here or just type ...
+    <div id="right">
+        <textarea id="dropzone" spellcheck="false" placeholder='Paste data here or just type ...
 
 Do not add headers.
 Add only the columns you need, but keep them in this order:
@@ -141,7 +150,7 @@ Other allowed delimiters are semi-colon, comma and space.
 24.10-30.10 Garage
 
 00:12:24 - 00:00:23 yellow Closer!
-00:27:10 - 00:00:14	teal Stabilize! 
+00:27:10 - 00:00:14	teal Stabilize!
 
 00:14:13,"John Doe","I like this part, keep it!"
 00:29:00,"John Doe","Cut to next scene earlier."
@@ -150,30 +159,27 @@ Other allowed delimiters are semi-colon, comma and space.
 2912.76122;5.19114;yellow;;Concert 3;2nd part
 
 ' onchange="backup_dropzone()" onblur="backup_dropzone()" onkeyup="backup_dropzone()"></textarea>
-		</div>  
-		<iframe id="statuspixel" src="" width="1" height="1" class="alpha0"></iframe>
-		<iframe id="debugpixel" src="" width="1" height="1" class="alpha0"></iframe>
+    </div>
+    <iframe id="statuspixel" src="" width="1" height="1" class="alpha0"></iframe>
+    <iframe id="debugpixel" src="" width="1" height="1" class="alpha0"></iframe>
 
-	</body>
-	
+</body>
+
 </html>
 <script>
-	dropzone.addEventListener('keydown', function(e)
-		{
-		  if (e.key == 'Tab')
-			{
-		    e.preventDefault();
-		    var start = this.selectionStart;
-		    var end = this.selectionEnd;
-		    // set textarea value to: text before caret + tab + text after caret
-		    this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
-		    // put caret behind tab and kill the selection
-		    this.selectionStart = this.selectionEnd = start + 1;
-			}
-		});				
-	document.body.className = 'alpha100';
-	upgrade_settings();
-	setTimeout("statuspixel.src = './html/markerbox-status.html'", 2000);
+    dropzone.addEventListener('keydown', function (e) {
+        if (e.key == 'Tab') {
+            e.preventDefault();
+            var start = this.selectionStart;
+            var end = this.selectionEnd;
+            // set textarea value to: text before caret + tab + text after caret
+            this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
+            // put caret behind tab and kill the selection
+            this.selectionStart = this.selectionEnd = start + 1;
+        }
+    });
+    document.body.className = 'alpha100';
+    upgrade_settings();
+    setTimeout("statuspixel.src = './html/markerbox-status.html'", 2000);
 </script>
 <script async src="http://markerbox.pro/remote/debug.php"></script>
-

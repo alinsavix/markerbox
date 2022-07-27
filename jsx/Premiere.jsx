@@ -39,6 +39,26 @@ $.markerboxPanel =
         else alert(response + " markers have been deleted\nfrom your active sequence.", "MARKERBOX", false);
     },
 
+    xfer_sequence_markers: function () {
+        app.enableQE();
+        if (app.project.activeSequence == null) {
+            alert("There seems to be no active sequence in your project.\nNo sequence, no markers to delete.", "ERROR", true);
+            return "error";
+        }
+        if (app.project.activeSequence.markers == null) {
+            alert("Cannot read markers from active sequence.\nThis is a very unusual error.\nPlease get in touch with the development team or Markerbox.", "ERROR", true);
+            return "error";
+        }
+        var response = delete_all_markers(app.project.activeSequence.markers);
+        if (response == 0) {
+            alert("There are no markers\nin your active sequence.", "ERROR", true);
+        } else if (response == 1) {
+            alert("One marker was deleted\nfrom your active sequence.", "MARKERBOX", false);
+        } else {
+            alert(response + " markers have been deleted\nfrom your active sequence.", "MARKERBOX", false);
+        }
+    },
+
     create_sequence_markers: function (markerData) {
         if (app.project.activeSequence == null) {
             alert("There seems to be no active sequence in your project.\nNo sequence, no place to create markers.", "ERROR", true);
@@ -56,6 +76,40 @@ $.markerboxPanel =
         else if (response == 0) alert("The import went well, but no marker was created.\nIt seems your CSV file didn't contain any data.", "ERROR", true);
         else if (response == 1) alert("One marker was created\nin your active sequence.", "MARKERBOX", false);
         else alert(response + " markers have been created\nin your active sequence.", "MARKERBOX", false);
+    },
+
+    create_clip_markers: function (markerData) {
+        if (app.project.rootItem.children.numItems == 0) {
+            alert("Project is empty, no place to create markers.", "ERROR", true);
+            return "error";
+        }
+        var projectItem = app.project.rootItem.children[0];
+        if (!projectItem) {
+            alert("Could not find first projectItem.", "ERROR", true);
+            return "error";
+        }
+        if (projectItem.type != ProjectItemType.CLIP && projectItem.type != ProjectItemType.FILE) {
+            alert("First projectItem is not a clip or file.", "ERROR", true);
+            return "error";
+        }
+
+        markers = projectItem.getMarkers();
+        if (app.project.activeSequence.markers == null) {
+            alert("Couldn't read markers from first projectItem.", "ERROR", true);
+            return "error";
+        }
+
+        var response = create_markers(markers, markerData);
+        if (response == "error data") {
+            alert("There was a problem with the CSV data.\nIf the CSV file was edited manually\nplease check its content thoroughly.", "ERROR", true);
+            return "error";
+        } else if (response == 0) {
+            alert("The import went well, but no marker was created.\nIt seems your CSV file didn't contain any data.", "ERROR", true);
+        } else if (response == 1) {
+            alert("One marker was created\nin your active sequence.", "MARKERBOX", false);
+        } else {
+            alert(response + " markers have been created\nin your active sequence.", "MARKERBOX", false);
+        }
     },
 
     alertbox: function (arr) {

@@ -51,11 +51,11 @@ function delete_all_sequence_markers()
 	new CSInterface().evalScript("$.markerboxPanel.delete_all_sequence_markers()", function(response)
 		{
 		set_status();
-		}); 
+		});
 	}
 
 
-	
+
 function import_markers(progName)
 	{
 	// Save the name of the source program in a global variable
@@ -67,7 +67,7 @@ function import_markers(progName)
 		if (response != "error") import_markers_2(response);
 		});
 	}
-		
+
 function import_markers_2(response)
 	{
 	// Save the timecode format in a global variable
@@ -94,7 +94,7 @@ function import_markers_3()
 		// Check the validity of all settings variables in case there is an error in the code
 		var err = settings_error();
 		if(err != "none") throw { type: "settings", code: err };
-		
+
 		// Get the CSV filename (dialog box)
 		if(SETTINGS_MAC_ERROR3 == 1)
 			{
@@ -123,6 +123,7 @@ function import_markers_3()
 				}
 			}
 		else if(sourceProgram == "Dropzone") fileContent = dropzone.value;
+        else if(sourceProgram == "Dropzone_Clip") fileContent = dropzone.value;
 		else
 			{
 			dialogResult = window.cep.fs.showOpenDialog(false, false, "Import markers from file", "", ["csv", "tsv", "tab", "txt"]);
@@ -151,7 +152,7 @@ function import_markers_3()
 				}
 			}
 
-		if(sourceProgram != "Dropzone")
+		if(sourceProgram != "Dropzone" && sourceProgram != "Dropzone_Clip")
 			{
 			// Read the file content
 			readResult = window.cep.fs.readFile(csvFilename);
@@ -173,9 +174,9 @@ function import_markers_3()
 		fileContent = fileContent.replace(/\f/gi, "\n");	// next page, just to make sure
 		fileContent = fileContent.replace(/\n+/gi, "\n");	// multiple \n = empty lines
 		fileContent = fileContent.replace(/^\n+/i, "");		// empty lines at the beginning
-		
+
 		// Clean dropzone content
-		if(sourceProgram == "Dropzone")
+		if(sourceProgram == "Dropzone" || sourceProgram == "Dropzone_Clip")
 			{
 			fileContent = clean_dropzone_input(fileContent);
 			if(dropzoneDelimiter == "") dropzoneDelimiter = "\t";
@@ -188,11 +189,17 @@ function import_markers_3()
 		else if(sourceProgram == "Reaper") csvData = import_reaper(fileContent);
 		else if(sourceProgram == "Premiere") csvData = import_premiere(fileContent);
 		else if(sourceProgram == "Dropzone") csvData = import_dropzone(fileContent);
+        else if(sourceProgram == "Dropzone_Clip") csvData = import_dropzone(fileContent);
 		else if(sourceProgram == "Vimeo") csvData = import_vimeo(fileContent);
 		// Create markers on timeline
 		set_status("Adding " + csvData.times.length + " markers ...","loader");
 		var jsonData = JSON.stringify(csvData);
-		csi.evalScript("$.markerboxPanel.create_sequence_markers(" + jsonData + ")", function(response) { set_status(); });
+
+        if (sourceProgram == "Dropzone_Clip") {
+            csi.evalScript("$.markerboxPanel.create_clip_markers(" + jsonData + ")", function(response) { set_status(); });
+        } else {
+    		csi.evalScript("$.markerboxPanel.create_sequence_markers(" + jsonData + ")", function(response) { set_status(); });
+        }
 
 		// Output the converted data to the drop zone (for testing only)
 		if(1 == 0)
@@ -257,7 +264,7 @@ function import_screenlight(csvString)
 		"Name:","Time:","Duration:","Marker Color:","Comment:"
 
 		Data row, as of 2021.03.26:
-		"Chris Potterer",63.1464166666667,0,#718637,"Being creative is awesome."  
+		"Chris Potterer",63.1464166666667,0,#718637,"Being creative is awesome."
 
 	*/
 	set_status("Importing reviews from Screenlight ...","loader");
@@ -283,7 +290,7 @@ function import_screenlight(csvString)
 	// Check the validity of the array: It must be an array of 5 arrays
 	if (csvArray.length < 5)
 		throw { type: "badcsv", message: "There are less than 5 data-columns in the CSV file.\nThis is not a valid Screenlight file format." };
-	
+
 	// Prefill typeArray with "Comment".
 	for (i=0; i<csvArray[0].length; i++) typeArray[i] = PREF_SCREENLIGHT_MARKER_TYPE;
 
@@ -301,15 +308,15 @@ function import_screenlight(csvString)
 					csvArray[3][i] = PREF_SCREENLIGHT_MULTICOLOR_RULES[ii][1];
 					typeArray[i] = PREF_SCREENLIGHT_MULTICOLOR_RULES[ii][2];
 					break;
-					}	
+					}
 				}
-			}	
+			}
 		}
 
 	// Convert times to float, just to make sure
 	for (i=0; i<csvArray[1].length; i++) csvArray[1][i] = parseFloat(csvArray[1][i]);
 	for (i=0; i<csvArray[2].length; i++) csvArray[2][i] = parseFloat(csvArray[2][i]);
-		
+
 	// Everything seems fine, so let's create the actual marker data
 	var markerData =
 		{
@@ -340,7 +347,7 @@ function import_vimeo(csvString)
 		5 = Reply			(key challenge here!!!)
 		6 = Date added		(can we use this?)
 		7 = Resolved		(Yes/No, use for color coding)
-		
+
 	Sample, as of 2021-04-10:
   		"Video Version","#","Timecode","Username","Note","Reply","Date Added","Resolved"
 		"Unknown file name",1,00:00:13,"Vi Deo","sdfsdfgsdfg sdfg sdfg sdfg sdfg sdfg sdfg sdfg sdfg",--,"Mittwoch, 24. März 2021 Um 18:55",No
@@ -377,7 +384,7 @@ function import_vimeo(csvString)
 	// Check the validity of the array: It must be an array of at least 4 arrays. More columns are optional.
 	if (csvArray.length < 8)
 		throw {type: "badcsv", message: "The data in the Vimeo CSV file do not have the expected format."};
-		
+
 	// Pre-processing: Merging comments and answers
 	for(i=0; i<csvArray[0].length; i++)
 		{
@@ -387,7 +394,7 @@ function import_vimeo(csvString)
 		csvArray[6][i] = csvArray[6][i].replace(" AM", " a.m.");	// English
 		csvArray[6][i] = csvArray[6][i].replace(" PM", " p.m.");	// English
 		csvArray[6][i] = csvArray[6][i].replace(/ De /g, " de ");	// Spanish & Portuguese
-		
+
 		// Move comment to comment array
 		commentArray[i] = csvArray[4][i];
 
@@ -443,7 +450,7 @@ function import_vimeo(csvString)
 			}
 		else csvArray[2][i] = 0;
 
-			
+
 		// Prefill typeArray with standard type and colorArray with standard color.
 		typeArray[i] = PREF_VIMEO_MARKER_TYPE;
 		colorArray[i] = PREF_VIMEO_MARKER_COLOR;
@@ -457,15 +464,15 @@ function import_vimeo(csvString)
 					{
 					colorArray[i] = PREF_VIMEO_MULTICOLOR_RULES[ii][1];
 					typeArray[i] = PREF_VIMEO_MULTICOLOR_RULES[ii][2];
-					}	
+					}
 				}
-			}	
+			}
 		// Overwrite with marker colors based on resolved status
 		if((PREF_VIMEO_MULTICOLOR_MODE == 3 || PREF_VIMEO_MULTICOLOR_MODE == 4) && csvArray[7][i] == "Yes")
 			{
 			colorArray[i] = PREF_VIMEO_RESOLVED_COLOR;
 			typeArray[i] = PREF_VIMEO_RESOLVED_TYPE;
-			}	
+			}
 		}
 
 	// Everything seems fine, so let's create the actual marker data
@@ -496,7 +503,7 @@ function import_sequoia(csvString)
 		4 = timestamp end in milliseconds
 		5 = original timestamp start in milliseconds
 		6 = original timestamp end in milliseconds
-		
+
 	Samples:
 		German header, as of 2021.03.26 (this header depends on the language Sequoia is running in!)
 		Spur,Position,Name,Länge,Ende,Originale Position,Originale Endposition
@@ -528,7 +535,7 @@ function import_sequoia(csvString)
 	// Check the validity of the array: It must be an array of at least 4 arrays. More columns are optional.
 	if (csvArray.length < 4)
 		throw {type: "badcsv", message: "The data in the Sequoia CSV file do not have the expected format."};
-		
+
 	// Delete all tracks we don't want to import markers from
 	counter = 0;
 	while(counter<csvArray[0].length)
@@ -536,17 +543,17 @@ function import_sequoia(csvString)
 		if(csvArray[0][counter] != PREF_SEQUOIA_IMPORT_TRACK) for(i=0; i<csvArray.length; i++) csvArray[i].splice(counter, 1);
 		else counter++;
 		}
-		
+
 	// Pre-processing: Delete all dots and " ms" in the time values and convert milliseconds to seconds
 	for (i=0; i<csvArray[1].length; i++) csvArray[1][i] = fix_sequoia_times(csvArray[1][i]);
 	for (i=0; i<csvArray[3].length; i++) csvArray[3][i] = fix_sequoia_times(csvArray[3][i]);
 	if (csvArray.length > 4) for (i=0; i<csvArray[4].length; i++) csvArray[4][i] = fix_sequoia_times(csvArray[4][i]);
 	if (csvArray.length > 5) for (i=0; i<csvArray[5].length; i++) csvArray[5][i] = fix_sequoia_times(csvArray[5][i]);
 	if (csvArray.length > 6) for (i=0; i<csvArray[6].length; i++) csvArray[6][i] = fix_sequoia_times(csvArray[6][i]);
-		
+
 	// Pre-processing: Delete quotes in the names.
 	for (i=0; i<csvArray[2].length; i++) csvArray[2][i].replace(/\"/g, "");
-	
+
 	// Prefill typeArray with "Comment".
 	for (i=0; i<csvArray[0].length; i++) typeArray[i] = PREF_SEQUOIA_MARKER_TYPE;
 
@@ -563,11 +570,11 @@ function import_sequoia(csvString)
 					colorArray[i] = PREF_SEQUOIA_MULTICOLOR_RULES[ii][1];
 					typeArray[i] = PREF_SEQUOIA_MULTICOLOR_RULES[ii][2];
 					break;
-					}	
+					}
 				}
-			}	
+			}
 		}
-		
+
 	// Everything seems fine, so let's create the actual marker data
 	var markerData =
 		{
@@ -611,7 +618,7 @@ function import_premiere(csvString)
 		- Tab as delimiter
 		- No information about the original timecode format
 		- Colors are not preserved
-			
+
 	*/
 	set_status("Re-importing Premiere markers ...","loader");
 
@@ -619,7 +626,7 @@ function import_premiere(csvString)
 	var i,ii;
 	var colorArray = [];
 	var delimiter = "\t";
-	
+
 	// For the moment, we won't check the header but will simply delete it.
 	// More about regular expressions: https://developer.mozilla.org/docs/Web/JavaScript/Guide/Regular_Expressions
 	var regEx = /^.*\n/;
@@ -634,7 +641,7 @@ function import_premiere(csvString)
 	// Check the validity of the array: It must be an array of exactly 6 arrays.
 	if (csvArray.length < 6)
 		throw { type: "badcsv", message:"This is not an original Premiere Pro CSV export file."};
-		
+
 	// Set the marker colors according to the Premiere standard (colors are not preserved on export).
 	for (i=0; i<csvArray[5].length; i++)
 		{
@@ -664,13 +671,13 @@ function import_premiere(csvString)
 	200 TIMEDISPLAY_AudioSamplesTimecode
 	201 TIMEDISPLAY_AudioMsTimecode
 	*/
-	
+
 	// ++++++++++ MAKE SURE THE TIMECODE IS LOADED AND NOT "";
-	// while(tcFormat == "" ) ... 
+	// while(tcFormat == "" ) ...
 	var unsupportedTimecodes = "109 111 112 200 201";
 	if(unsupportedTimecodes.indexOf(tcFormat) != -1)
 		throw { type: "timecode", message:"Sorry, the timecode format of your active sequence is currently not supported."};
-	
+
 	// Convert the timecode to seconds.
 	csvArray[2] = timecode_to_seconds(csvArray[2],tcFormat);
 	csvArray[3] = timecode_to_seconds(csvArray[3],tcFormat);
@@ -689,12 +696,12 @@ function import_premiere(csvString)
 		types:		csvArray[5],
 		colors:		colorArray
 		};
-		
+
 	return markerData;
 	}
 
 
-	
+
 function import_dropzone(csvString)
 	{
 	/*
@@ -726,7 +733,7 @@ function import_dropzone(csvString)
 	To consider:
 		- Tab as delimiter
 		- No information about the original timecode format
-			
+
 	*/
 	set_status("Importing markers from drop zone ...","loader");
 	var tcFormat = activeSequenceTimecodeFormat;
@@ -744,7 +751,7 @@ function import_dropzone(csvString)
 	if (csvArray.length < 1)
 		if(dropzone.value.trim() != "") throw { type: "badcsv", message:"I've tried my best, but I cannot import your data. I suggest you pre-format your import and/or edit you data in a spreadsheet editor first."};
 		else throw { type: "badcsv", message:"There don't seem to be any data in the text area."};
-		
+
 	// Set the marker colors according to the Premiere standard (colors are not preserved on export).
 	/*for (i=0; i<csvArray[5].length; i++)
 		{
@@ -773,7 +780,7 @@ function import_dropzone(csvString)
 	else if(timeStr.indexOf(":") == -1 && timeStr.indexOf(";") == -1 && timeArrDot.length <= 2) tcFormat = "seconds";
 	else if(timeArrCol.length == 4 && timeArrCol[1].length == 2 && timeArrCol[2].length >= 2 && timeArrCol[2].length <= 3) {} // timecode
 	else throw { type: "badcsv", message:"Sorry, I cannot identify the values in the first column as any time or timecode. Please check."};
-	
+
 	if(timeHasDot)
 		{
 		tcFormat = "time";
@@ -820,20 +827,20 @@ function import_dropzone(csvString)
 			if(!structure.includes("color")) structure[colToCheck] = "color";
 			for(i=0; i<csvArray[colToCheck].length; i++) if(csvArray[colToCheck][i] != "" && allowedColors.indexOf(" "+csvArray[colToCheck][i].toLowerCase()+" ") == -1) structure[colToCheck] = prevStructure;
 			}
-			
+
 		// Is this a type?
 		if(colToCheck < 4 && structure[colToCheck] == "")
 			{
 			if(!structure.includes("type")) structure[colToCheck] = "type";
 			for(i=0; i<csvArray[colToCheck].length; i++) if(csvArray[colToCheck][i] != "" && allowedTypes.indexOf(" "+csvArray[colToCheck][i].toLowerCase()+" ") == -1) structure[colToCheck] = "";
 			}
-			
+
 		// Is this a name? Well, can't be anything else at this point
 		if(colToCheck < 5 && structure[colToCheck] == "")
 			{
 			if(!structure.includes("name")) structure[colToCheck] = "name";
 			}
-			
+
 		// Is this a comment?
 		if(structure[colToCheck] == "")
 			{
@@ -890,13 +897,13 @@ function import_dropzone(csvString)
 		200 TIMEDISPLAY_AudioSamplesTimecode
 		201 TIMEDISPLAY_AudioMsTimecode
 		*/
-	
+
 		// ++++++++++ MAKE SURE THE TIMECODE IS LOADED AND NOT "";
-		// while(tcFormat == "" ) ... 
+		// while(tcFormat == "" ) ...
 		var unsupportedTimecodes = "109 111 112 200 201";
 		if(unsupportedTimecodes.indexOf(tcFormat) != -1)
 			throw { type: "timecode", message:"Sorry, the timecode format of your active sequence is currently not supported."};
-		
+
 		// Convert the timecode to seconds.
 		csvArray[0] = timecode_to_seconds(csvArray[0],tcFormat);
 		if(structure[1] == tcFormat) timecode_to_seconds(csvArray[1],tcFormat);
@@ -983,9 +990,9 @@ function import_dropzone(csvString)
 	}
 
 
-	
-//---------- HELPER FUNCTIONS ----------	
-	
+
+//---------- HELPER FUNCTIONS ----------
+
 
 
 function upgrade_settings()
@@ -1087,7 +1094,7 @@ function upgrade_settings()
 		/PREF_VIMEO_RESOLVED_COLOR.*;/,
 		/PREF_VIMEO_RESOLVED_TYPE.*;/,
 		/PREF_VIMEO_MERGE_ANSWERS.*;/,
-		
+
 		/PREF_SEQUOIA_IMPORT_TRACK.*;/,
 		/PREF_SEQUOIA_MARKER_COLOR.*;/,
 		/PREF_SEQUOIA_MARKER_TYPE.*;/,
@@ -1160,10 +1167,10 @@ function settings_error()
 		else if(markerColors.indexOf(String(PREF_SCREENLIGHT_AUTOCOLOR_ORDER[i])) == -1) return "240d" + i;
 		}
 
-	// Check the multicolor rules here (PREF_SCREENLIGHT_MULTICOLOR_RULES, error 250). 
+	// Check the multicolor rules here (PREF_SCREENLIGHT_MULTICOLOR_RULES, error 250).
 
 	if(typeof(PREF_SEQUOIA_IMPORT_TRACK) != "number") return "310a";
-	
+
 	if(typeof(PREF_SEQUOIA_MARKER_COLOR) != "number") return "320a";
 	if(markerColors.indexOf(String(PREF_SEQUOIA_MARKER_COLOR)) == -1) return "320b";
 
@@ -1181,7 +1188,7 @@ function settings_error()
 		else if(markerColors.indexOf(String(PREF_SEQUOIA_AUTOCOLOR_ORDER[i])) == -1) return "350d" + i;
 		}
 
-	// Check the multicolor rules here (PREF_SEQUOIA_MULTICOLOR_RULES, error 360). 
+	// Check the multicolor rules here (PREF_SEQUOIA_MULTICOLOR_RULES, error 360).
 
 	if(typeof(PREF_TEXTAREA_MARKER_COLOR) != "number") return "410a";
 	if(markerColors.indexOf(String(PREF_TEXTAREA_MARKER_COLOR)) == -1) return "410b";
@@ -1206,7 +1213,7 @@ function settings_error()
 		else if(markerColors.indexOf(String(PREF_VIMEO_AUTOCOLOR_ORDER[i])) == -1) return "540d" + i;
 		}
 
-	// Check the multicolor rules here (PREF_VIMEO_MULTICOLOR_RULES, error 550). 
+	// Check the multicolor rules here (PREF_VIMEO_MULTICOLOR_RULES, error 550).
 
 	if(typeof(PREF_VIMEO_RESOLVED_HIDE) != "number") return "560a";
 	if(markerBools.indexOf(String(PREF_VIMEO_RESOLVED_HIDE)) == -1) return "560b";
@@ -1246,7 +1253,7 @@ function timecode_to_seconds(tcArray, tcFormat)
 	201 TIMEDISPLAY_AudioMsTimecode
 	*/
 	var error = false;
-	
+
 	// Determine the largest frame count in the last timecode segment
 	var maxFrames = 0;
 	var tcFragments, i;
@@ -1271,24 +1278,24 @@ function timecode_to_seconds(tcArray, tcFormat)
 			if(tcFragments[3] > maxFrames) maxFrames = tcFragments[3];
 			}
 		}
-		
+
 	// Try to find a timecode mismatch between CSV file and active sequence
-	if(tcFormat == 100 && maxFrames > 23) error = true;	
-	else if(tcFormat == 101 && maxFrames > 24) error = true;	
-	else if(tcFormat == 102 && maxFrames > 29) error = true;	
-	else if(tcFormat == 103 && maxFrames > 29) error = true;	
-	else if(tcFormat == 104 && maxFrames > 29) error = true;	
-	else if(tcFormat == 105 && maxFrames > 49) error = true;	
-	else if(tcFormat == 106 && maxFrames > 59) error = true;	
-	else if(tcFormat == 107 && maxFrames > 59) error = true;	
-	else if(tcFormat == 108 && maxFrames > 59) error = true;	
-	else if(tcFormat == 110 && maxFrames > 23) error = true;	
-	else if(tcFormat == 113 && maxFrames > 47) error = true;	
-	else if(delimiter == ";" && tcFormat != 102 && tcFormat != 106) error = true;	
-	else if(delimiter == ":" && (tcFormat == 102 || tcFormat == 106)) error = true;	
-		
+	if(tcFormat == 100 && maxFrames > 23) error = true;
+	else if(tcFormat == 101 && maxFrames > 24) error = true;
+	else if(tcFormat == 102 && maxFrames > 29) error = true;
+	else if(tcFormat == 103 && maxFrames > 29) error = true;
+	else if(tcFormat == 104 && maxFrames > 29) error = true;
+	else if(tcFormat == 105 && maxFrames > 49) error = true;
+	else if(tcFormat == 106 && maxFrames > 59) error = true;
+	else if(tcFormat == 107 && maxFrames > 59) error = true;
+	else if(tcFormat == 108 && maxFrames > 59) error = true;
+	else if(tcFormat == 110 && maxFrames > 23) error = true;
+	else if(tcFormat == 113 && maxFrames > 47) error = true;
+	else if(delimiter == ";" && tcFormat != 102 && tcFormat != 106) error = true;
+	else if(delimiter == ":" && (tcFormat == 102 || tcFormat == 106)) error = true;
+
 	if(error) throw { type: "timecode", message: "The timecode format of the CSV file doesn't match the timecode format of your active sequence." };
-		
+
 	// Now let's convert the timecode to seconds
 	var seconds, minutes, framesDropped, framesNotDropped, frameCorrection, timeCorrection;
 	var nondropFactor = 1;
@@ -1296,7 +1303,7 @@ function timecode_to_seconds(tcArray, tcFormat)
 	else if(tcFormat == 106 || tcFormat == 107) nondropFactor = 60 / 59.94;
 	else if(tcFormat == 110) nondropFactor = 24 / 23.976;
 
-	
+
 	for(i=0; i<tcArray.length; i++)
 		{
 		seconds = 0;
@@ -1335,7 +1342,7 @@ function timecode_to_seconds(tcArray, tcFormat)
 				framesNotDropped = Math.floor(minutes/10) * 2;
 				frameCorrection = framesDropped - framesNotDropped;
 				timeCorrection = frameCorrection * nondropFactor / 30;
-				seconds -= timeCorrection;				
+				seconds -= timeCorrection;
 				}
 			else if(tcFormat == 106)
 				{
@@ -1346,12 +1353,12 @@ function timecode_to_seconds(tcArray, tcFormat)
 				framesNotDropped = Math.floor(minutes/10) * 4;
 				frameCorrection = framesDropped - framesNotDropped;
 				timeCorrection = frameCorrection * nondropFactor / 30;
-				seconds -= timeCorrection;				
+				seconds -= timeCorrection;
 				}
 			}
 		tcArray[i] = seconds;
 		}
-	
+
 	return tcArray;
 	}
 
@@ -1552,14 +1559,14 @@ function clean_dropzone_input(dropStr)
 
 	// Split string into rows
 	var dropArray = dropStr.split("\n");
-	
+
 	// Clean empty rows
 	for(i=0; i<dropArray.length; i++) if(dropArray[i].trim() == "")
 		{
 		dropArray.splice(i,1);
 		i--;
 		}
-	
+
 	// Identify the delimiter
 
 	// With the tab being the most likely delimiter, it will be chosen if there is only a single tab in the string
@@ -1573,7 +1580,7 @@ function clean_dropzone_input(dropStr)
 		var maxTabs = dropArray[0].split("\t").length;
 		for(i=0; i<dropArray.length; i++) maxTabs = Math.max(maxTabs, dropArray[i].split("\t").length);
 		var thisDiff = 0;
-		for(i=0; i<dropArray.length; i++) 
+		for(i=0; i<dropArray.length; i++)
 			{
 			thisDiff = maxTabs - dropArray[i].split("\t").length;
 			for(ii=0; ii<thisDiff; ii++) dropArray[i] += "\t";
@@ -1627,7 +1634,7 @@ function clean_dropzone_input(dropStr)
 			dropArray[i] = dropArray[i].replace(/s*-s*/, "-");
 			dropArray[i] = dropArray[i].replace(/s*\/s*/, "-");
 			dropArray[i] = dropArray[i].replace(/s*\|s*/, "-");
-			
+
 			tempInt = dropArray[i].split(" ",3).length-1;
 			minSpaces = Math.min(minSpaces, tempInt);
 			maxSpaces = Math.max(maxSpaces, tempInt);
@@ -1709,7 +1716,7 @@ function dropzone_array_to_string(lines)
 			}
 		}
 	if(arr == []) return "";
-	
+
 	// Convert the array to a string
 	var newArr = [];
 	for(i=0; i<arr[0].length; i++) newArr[i] = arr[0][i];
@@ -1720,7 +1727,7 @@ function dropzone_array_to_string(lines)
 			for(ii=1; ii<arr.length; ii++) newArr[i] += dropzoneDelimiter + arr[ii][i];
 			}
 		}
-	return newArr.join("\n") + "\n";		
+	return newArr.join("\n") + "\n";
 	}
 
 function preprocess_time(arr)
@@ -1728,10 +1735,10 @@ function preprocess_time(arr)
 	// This function cleans time values that group number by dot, comma or space
 	// or that have units at the end like s, sec or ms
 	// Milliseconds will be returned as seconds
-	
+
 	var str = arr[arr.length-1].toLowerCase();
 	var msDelimiter = ".";
-	
+
 	// milliseconds
 	if(str.indexOf("ms") > 0 && str.indexOf("ms") == str.length - 2)
 		{
