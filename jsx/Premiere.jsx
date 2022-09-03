@@ -7,6 +7,13 @@ Last modified on April 14, 2021
 
 */
 
+var console = console || {};
+
+console.log = function (message) {
+
+    $.writeln(message);
+
+};
 
 $.markerboxPanel =
 {
@@ -17,11 +24,37 @@ $.markerboxPanel =
         }
         var timecodeFormat = parseFloat(app.project.activeSequence.videoDisplayFormat);
         if (timecodeFormat < 100 || timecodeFormat > 201) {
-            alert("Your active sequence seems to have an unsupported timecode format.\nMarkers cannot be imported.", "ERROR", true);
+            alert("Your active sequence seems to have an unsupported timecode format (" + timecodeFormat + ").\nMarkers cannot be imported.", "ERROR", true);
             return "error";
         }
         return timecodeFormat;
     },
+
+    // get_sequence_timecode_format: function () {
+    //     if (app.project.activeSequence == null) {
+    //         alert("There seems to be no active sequence in your project.\nWithout an active sequence there's nothing I can do.", "ERROR", true);
+    //         return "error";
+    //     }
+    //     var timecodeFormat = parseFloat(app.project.activeSequence.videoDisplayFormat);
+    //     // if (timecodeFormat < 100 || timecodeFormat > 201) {
+    //     //     alert("Your active sequence seems to have an unsupported timecode format.\nMarkers cannot be imported.", "ERROR", true);
+    //     //     return "error";
+    //     // }
+    //     return timecodeFormat;
+    // },
+
+    // set_sequence_timecode_format: function (timecodeFormat) {
+    //     if (app.project.activeSequence == null) {
+    //         alert("There seems to be no active sequence in your project.\nWithout an active sequence there's nothing I can do.", "ERROR", true);
+    //         return "error";
+    //     }
+
+    //     var currentSettings = app.project.activeSequence.getSettings();
+    //     currentSettings.videoDisplayFormat = timecodeFormat + 1;
+    //     app.project.activeSequence.setSettings(currentSettings);
+
+    //     return timecodeFormat;
+    // },
 
     delete_all_sequence_markers: function () {
         app.enableQE();
@@ -50,13 +83,9 @@ $.markerboxPanel =
             return "error";
         }
         var response = delete_all_markers(app.project.activeSequence.markers);
-        if (response == 0) {
-            alert("There are no markers\nin your active sequence.", "ERROR", true);
-        } else if (response == 1) {
-            alert("One marker was deleted\nfrom your active sequence.", "MARKERBOX", false);
-        } else {
-            alert(response + " markers have been deleted\nfrom your active sequence.", "MARKERBOX", false);
-        }
+        if (response == 0) alert("There are no markers\nin your active sequence.", "ERROR", true);
+        else if (response == 1) alert("One marker was deleted\nfrom your active sequence.", "MARKERBOX", false);
+        else alert(response + " markers have been deleted\nfrom your active sequence.", "MARKERBOX", false);
     },
 
     create_sequence_markers: function (markerData) {
@@ -79,6 +108,26 @@ $.markerboxPanel =
     },
 
     create_clip_markers: function (markerData) {
+
+        var selectedItems = app.getCurrentProjectViewSelection();
+        if (!selectedItems) {
+            alert("No project items are selected, so no place to create markers");
+            return "error";
+        }
+
+        if (selectedItems.length != 1) {
+            alert("More than one project item selected, so not sure where to create markers");
+            return "error";
+        }
+
+        projectItem = selectedItems[0];
+
+        if (projectItem.type != ProjectItemType.CLIP && projectItem.type != ProjectItemType.FILE) {
+            alert("Selected project item is not a clip or file.", "ERROR", true);
+            return "error";
+        }
+
+        /*
         if (app.project.rootItem.children.numItems == 0) {
             alert("Project is empty, no place to create markers.", "ERROR", true);
             return "error";
@@ -92,24 +141,21 @@ $.markerboxPanel =
             alert("First projectItem is not a clip or file.", "ERROR", true);
             return "error";
         }
-
+        */
         markers = projectItem.getMarkers();
+
         if (app.project.activeSequence.markers == null) {
-            alert("Couldn't read markers from first projectItem.", "ERROR", true);
+            alert("Couldn't read markers from selected item.", "ERROR", true);
             return "error";
         }
-
         var response = create_markers(markers, markerData);
         if (response == "error data") {
             alert("There was a problem with the CSV data.\nIf the CSV file was edited manually\nplease check its content thoroughly.", "ERROR", true);
             return "error";
-        } else if (response == 0) {
-            alert("The import went well, but no marker was created.\nIt seems your CSV file didn't contain any data.", "ERROR", true);
-        } else if (response == 1) {
-            alert("One marker was created\nin your active sequence.", "MARKERBOX", false);
-        } else {
-            alert(response + " markers have been created\nin your active sequence.", "MARKERBOX", false);
         }
+        else if (response == 0) alert("The import went well, but no marker was created.\nIt seems your CSV file didn't contain any data.", "ERROR", true);
+        else if (response == 1) alert("One marker was created\nin your selected project item.", "MARKERBOX", false);
+        else alert(response + " markers have been created\nin your selected project item.", "MARKERBOX", false);
     },
 
     alertbox: function (arr) {
